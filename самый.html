@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUZAFFAR BANK</title>
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(120deg,#00d2ff,#3a7bd5);
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+.container {
+    max-width: 480px;
+    margin: 50px auto;
+    background: #fff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+h2 { text-align: center; color: #3a7bd5; }
+input, button {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+button {
+    background: #3a7bd5;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+button:hover { background: #1a5ca8; }
+.hidden { display: none; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+table, th, td { border: 1px solid #ccc; }
+th, td { padding: 10px; text-align: center; }
+.balance { font-weight: bold; color: #3a7bd5; font-size: 18px; }
+</style>
+</head>
+<body>
+
+<div class="container" id="authContainer">
+    <h2>MUZAFFAR BANK</h2>
+
+    <div id="registerForm">
+        <input type="text" id="regName" placeholder="Ваше имя">
+        <input type="text" id="regPhone" placeholder="Номер телефона">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPass" placeholder="Пароль">
+        <button onclick="register()">Зарегистрироваться</button>
+    </div>
+
+    <div id="loginForm" class="hidden">
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPass" placeholder="Пароль">
+        <button onclick="login()">Войти</button>
+    </div>
+
+    <p style="text-align:center; cursor:pointer;" onclick="toggleForms()">Уже есть аккаунт? Войти</p>
+</div>
+
+<div class="container hidden" id="bankContainer">
+    <h2>Добро пожаловать, <span id="userName"></span></h2>
+    <p>Email: <span id="userEmail"></span></p>
+    <p>Баланс: <span class="balance" id="userBalance"></span></p>
+
+    <h3>Перевод</h3>
+    <input type="email" id="recipientEmail" placeholder="Email получателя">
+    <input type="number" id="amount" placeholder="Сумма перевода">
+    <button onclick="transfer()">Перевести</button>
+
+    <h3>История переводов</h3>
+    <table id="historyTable">
+        <tr><th>От кого</th><th>Кому</th><th>Сумма</th></tr>
+    </table>
+
+    <button onclick="logout()">Выйти</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script>
+// Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyAu-3nDoDijgkmFozFuGNhSsODArolpwA4",
+    authDomain: "muzaffar-bank-427fa.firebaseapp.com",
+    projectId: "muzaffar-bank-427fa",
+    storageBucket: "muzaffar-bank-427fa.firebasestorage.app",
+    messagingSenderId: "1076361280717",
+    appId: "1:1076361280717:web:226ca42c35b740fd07fd84",
+    measurementId: "G-KBJGJD2GVQ"
+};
+
+const app = firebase.initializeApp(firebaseConfig);
+const db = app.firestore();
+
+// Админ-аккаунт
+const ADMIN_EMAIL = "admin@bank.com";
+const ADMIN_PASS = "admin123";
+
+let currentUser = null;
+
+// Переключение форм
+function toggleForms() {
+    document.getElementById('registerForm').classList.toggle('hidden');
+    document.getElementById('loginForm').classList.toggle('hidden');
+}
+
+// Регистрация
+async function register() {
+    let name = document.getElementById('regName').value;
+    let phone = document.getElementById('regPhone').value;
+    let email = document.getElementById('regEmail').value;
+    let password = document.getElementById('regPass').value;
+
+    if (!name || !phone || !email || !password) { alert('Заполните все поля'); return; }
+
+    const userRef = db.collection('users').doc(email);
+    const doc = await userRef.get();
+    if (doc.exists) { alert('Этот Email уже зарегистрирован'); return; }
+
+    let balance = 100; // Стартовый баланс
+
+    await userRef.set({ name, phone, email, password, balance });
+    alert('Регистрация успешна!');
+    loginUser(email, password);
+}
+
+// Вход
+async function login() {
+    let email = document.getElementById('loginEmail').value;
+    let password = document.getElementById('loginPass').value;
+    loginUser(email, password);
+}
+
+// Логин пользователя
+async function loginUser(email, password) {
+    // Проверка на админа
+    if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
+        currentUser = { email: ADMIN_EMAIL, name: "Администратор", balance: "Infinity", id: ADMIN_EMAIL };
+        document.getElementById('authContainer').classList.add('hidden');
+        document.getElementById('bankContainer').classList.remove('hidden');
+        document.getElementById('userName').innerText = currentUser.name;
+        document.getElementById('userEmail').innerText = currentUser.email;
+        updateBalance();
+        renderHistory();
+        return;
+    }
+
+    const userRef = db.collection('users').doc(email);
+    const doc = await userRef.get();
+    if (!doc.exists) { alert('Email не найден'); return; }
+
+    const userData = doc.data();
+    if (userData.password !== password) { alert('Неверный пароль'); return; }
+
+    currentUser = { ...userData, id: doc.id };
+    document.getElementById('authContainer').classList.add('hidden');
+    document.getElementById('bankContainer').classList.remove('hidden');
+    document.getElementById('userName').innerText = currentUser.name;
+    document.getElementById('userEmail').innerText = currentUser.email;
+    updateBalance();
+    renderHistory();
+}
+
+// Обновление баланса
+function updateBalance() {
+    document.getElementById('userBalance').innerText = (currentUser.balance === "Infinity") ? '∞' : currentUser.balance;
+}
+
+// Перевод
+async function transfer() {
+    let recipientEmail = document.getElementById('recipientEmail').value;
+    let amount = Number(document.getElementById('amount').value);
+    if (amount <= 0) { alert('Сумма должна быть больше 0'); return; }
+    if (currentUser.email === recipientEmail) { alert('Нельзя переводить себе'); return; }
+
+    const senderRef = db.collection('users').doc(currentUser.id);
+    const recipientRef = db.collection('users').doc(recipientEmail);
+
+    const recipientDoc = await recipientRef.get();
+    if (!recipientDoc.exists) { alert('Email получателя не найден'); return; }
+
+    const senderBalance = (currentUser.balance === "Infinity") ? Infinity : currentUser.balance;
+    if (senderBalance < amount) { alert('Недостаточно средств'); return; }
+
+    const recipientData = recipientDoc.data();
+    const recipientNewBalance = (recipientData.balance === "Infinity") ? Infinity : recipientData.balance + amount;
+    const senderNewBalance = (senderBalance === Infinity) ? "Infinity" : senderBalance - amount;
+
+    await recipientRef.update({ balance: recipientNewBalance });
+    if (senderBalance !== Infinity) {
+        await senderRef.update({ balance: senderNewBalance });
+        currentUser.balance = senderNewBalance;
+    }
+
+    await db.collection('transactions').add({
+        sender_email: currentUser.email,
+        receiver_email: recipientEmail,
+        amount: amount
+    });
+
+    updateBalance();
+    alert('Перевод выполнен!');
+    renderHistory();
+}
+
+// История переводов
+async function renderHistory() {
+    const historyTable = document.getElementById('historyTable');
+    historyTable.innerHTML = '<tr><th>От кого</th><th>Кому</th><th>Сумма</th></tr>';
+    
+    const snapshot = await db.collection('transactions').get();
+    snapshot.forEach(doc => {
+        const h = doc.data();
+        let row = historyTable.insertRow();
+        row.insertCell(0).innerText = h.sender_email;
+        row.insertCell(1).innerText = h.receiver_email;
+        row.insertCell(2).innerText = h.amount;
+    });
+}
+
+// Выход
+function logout() {
+    currentUser = null;
+    document.getElementById('bankContainer').classList.add('hidden');
+    document.getElementById('authContainer').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
