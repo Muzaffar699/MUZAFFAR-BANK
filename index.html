@@ -39,8 +39,7 @@ button {
 button:hover { background: #1a5ca8; }
 .hidden { display: none; }
 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-table, th, td { border: 1px solid #ccc; }
-th, td { padding: 10px; text-align: center; }
+table, th, td { padding: 10px; text-align: center; }
 .balance { font-weight: bold; color: #3a7bd5; font-size: 18px; }
 </style>
 </head>
@@ -126,7 +125,8 @@ async function register() {
     const doc = await userRef.get();
     if (doc.exists) { alert('Этот Email уже зарегистрирован'); return; }
 
-    let balance = 100; // Стартовый баланс
+    // Измененный стартовый баланс
+    let balance = 0;
 
     await userRef.set({ name, phone, email, password, balance });
     alert('Регистрация успешна!');
@@ -212,14 +212,24 @@ async function transfer() {
     renderHistory();
 }
 
-// История переводов
+// История переводов (обновлена, чтобы показывать только свои переводы)
 async function renderHistory() {
     const historyTable = document.getElementById('historyTable');
     historyTable.innerHTML = '<tr><th>От кого</th><th>Кому</th><th>Сумма</th></tr>';
     
-    const snapshot = await db.collection('transactions').get();
-    snapshot.forEach(doc => {
-        const h = doc.data();
+    // Запрос, который показывает только переводы, где текущий пользователь - отправитель или получатель
+    const senderSnapshot = await db.collection('transactions').where("sender_email", "==", currentUser.email).get();
+    const receiverSnapshot = await db.collection('transactions').where("receiver_email", "==", currentUser.email).get();
+
+    const transactions = new Map();
+    senderSnapshot.forEach(doc => {
+        transactions.set(doc.id, doc.data());
+    });
+    receiverSnapshot.forEach(doc => {
+        transactions.set(doc.id, doc.data());
+    });
+    
+    transactions.forEach(h => {
         let row = historyTable.insertRow();
         row.insertCell(0).innerText = h.sender_email;
         row.insertCell(1).innerText = h.receiver_email;
@@ -235,5 +245,5 @@ function logout() {
 }
 </script>
 </body>
-
+    </html>
 </html>
