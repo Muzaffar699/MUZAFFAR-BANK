@@ -100,10 +100,6 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const db = app.firestore();
 
-// Админ-аккаунт
-const ADMIN_EMAIL = "admin@bank.com";
-const ADMIN_PASS = "admin123";
-
 let currentUser = null;
 
 // Переключение форм
@@ -125,10 +121,9 @@ async function register() {
     const doc = await userRef.get();
     if (doc.exists) { alert('Этот Email уже зарегистрирован'); return; }
 
-    // Измененный стартовый баланс
     let balance = 0;
 
-    await userRef.set({ name, phone, email, password, balance });
+    await userRef.set({ name, phone, email, password, balance, isAdmin: false });
     alert('Регистрация успешна!');
     loginUser(email, password);
 }
@@ -142,18 +137,6 @@ async function login() {
 
 // Логин пользователя
 async function loginUser(email, password) {
-    // Проверка на админа
-    if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
-        currentUser = { email: ADMIN_EMAIL, name: "Администратор", balance: "Infinity", id: ADMIN_EMAIL };
-        document.getElementById('authContainer').classList.add('hidden');
-        document.getElementById('bankContainer').classList.remove('hidden');
-        document.getElementById('userName').innerText = currentUser.name;
-        document.getElementById('userEmail').innerText = currentUser.email;
-        updateBalance();
-        renderHistory();
-        return;
-    }
-
     const userRef = db.collection('users').doc(email);
     const doc = await userRef.get();
     if (!doc.exists) { alert('Email не найден'); return; }
@@ -162,6 +145,12 @@ async function loginUser(email, password) {
     if (userData.password !== password) { alert('Неверный пароль'); return; }
 
     currentUser = { ...userData, id: doc.id };
+    
+    // Проверка на админа через базу данных
+    if (userData.isAdmin) {
+        currentUser.balance = "Infinity";
+    }
+
     document.getElementById('authContainer').classList.add('hidden');
     document.getElementById('bankContainer').classList.remove('hidden');
     document.getElementById('userName').innerText = currentUser.name;
@@ -212,12 +201,11 @@ async function transfer() {
     renderHistory();
 }
 
-// История переводов (обновлена, чтобы показывать только свои переводы)
+// История переводов
 async function renderHistory() {
     const historyTable = document.getElementById('historyTable');
     historyTable.innerHTML = '<tr><th>От кого</th><th>Кому</th><th>Сумма</th></tr>';
     
-    // Запрос, который показывает только переводы, где текущий пользователь - отправитель или получатель
     const senderSnapshot = await db.collection('transactions').where("sender_email", "==", currentUser.email).get();
     const receiverSnapshot = await db.collection('transactions').where("receiver_email", "==", currentUser.email).get();
 
@@ -245,5 +233,4 @@ function logout() {
 }
 </script>
 </body>
-    </html>
 </html>
