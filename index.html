@@ -1,236 +1,291 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MUZAFFAR BANK</title>
-<style>
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(120deg,#00d2ff,#3a7bd5);
-    margin: 0;
-    padding: 0;
-    color: #333;
-}
-.container {
-    max-width: 480px;
-    margin: 50px auto;
-    background: #fff;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-h2 { text-align: center; color: #3a7bd5; }
-input, button {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-}
-button {
-    background: #3a7bd5;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-}
-button:hover { background: #1a5ca8; }
-.hidden { display: none; }
-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-table, th, td { padding: 10px; text-align: center; }
-.balance { font-weight: bold; color: #3a7bd5; font-size: 18px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUZAFFAR BANK</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #00d2ff; background: linear-gradient(120deg, #00d2ff, #3a7bd5); margin: 0; padding: 0; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background-color: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border-radius: 20px; padding: 40px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); width: 90%; max-width: 450px; text-align: center; }
+        h1 { margin-bottom: 20px; font-size: 2.5em; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); }
+        .auth-section, .bank-section { display: none; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input, .input-group button, .input-group select { width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 16px; box-sizing: border-box; }
+        .input-group input, .input-group select { background-color: rgba(255, 255, 255, 0.3); color: #fff; outline: none; transition: background-color 0.3s; }
+        .input-group input:focus, .input-group select:focus { background-color: rgba(255, 255, 255, 0.5); }
+        .input-group input::placeholder { color: rgba(255, 255, 255, 0.7); }
+        .btn { padding: 12px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s, transform 0.2s; color: #fff; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background-color: #3a7bd5; }
+        .btn-secondary { background-color: #4caf50; margin-top: 10px; }
+        .balance-info { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; text-align: left; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); }
+        .transfer-history { text-align: left; margin-top: 30px; }
+        .transfer-history h3 { border-bottom: 2px solid rgba(255, 255, 255, 0.5); padding-bottom: 10px; }
+        .transfer-item { background-color: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px; margin-top: 10px; }
+        .history-list { max-height: 200px; overflow-y: auto; padding-right: 10px; }
+        .history-list::-webkit-scrollbar { width: 8px; }
+        .history-list::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 4px; }
+        .message { margin-top: 20px; color: #ffeb3b; }
+        a { color: #ffeb3b; text-decoration: none; font-weight: bold; }
+        .tab-buttons { display: flex; justify-content: center; margin-bottom: 20px; }
+        .tab-buttons button { background-color: rgba(255, 255, 255, 0.2); border: none; color: white; padding: 10px 20px; cursor: pointer; border-radius: 10px; margin: 0 5px; }
+        .tab-buttons button.active { background-color: rgba(255, 255, 255, 0.4); }
+    </style>
 </head>
 <body>
 
-<div class="container" id="authContainer">
-    <h2>MUZAFFAR BANK</h2>
-
-    <div id="registerForm">
-        <input type="text" id="regName" placeholder="Ваше имя">
-        <input type="text" id="regPhone" placeholder="Номер телефона">
-        <input type="email" id="regEmail" placeholder="Email">
-        <input type="password" id="regPass" placeholder="Пароль">
-        <button onclick="register()">Зарегистрироваться</button>
+<div class="container">
+    <div id="authSection" class="auth-section">
+        <h1>MUZAFFAR BANK</h1>
+        <div class="tab-buttons">
+            <button id="loginTab" class="active">Вход</button>
+            <button id="registerTab">Регистрация</button>
+        </div>
+        <div id="loginForm">
+            <div class="input-group">
+                <input type="email" id="loginEmail" placeholder="Email">
+            </div>
+            <div class="input-group">
+                <input type="password" id="loginPassword" placeholder="Пароль">
+            </div>
+            <button class="btn btn-primary" onclick="login()">Войти</button>
+        </div>
+        <div id="registerForm" style="display:none;">
+            <div class="input-group">
+                <input type="email" id="registerEmail" placeholder="Email">
+            </div>
+            <div class="input-group">
+                <input type="password" id="registerPassword" placeholder="Пароль">
+            </div>
+            <div class="input-group">
+                <input type="text" id="userPhone" placeholder="Номер телефона">
+            </div>
+            <button class="btn btn-secondary" onclick="register()">Регистрация</button>
+        </div>
     </div>
 
-    <div id="loginForm" class="hidden">
-        <input type="email" id="loginEmail" placeholder="Email">
-        <input type="password" id="loginPass" placeholder="Пароль">
-        <button onclick="login()">Войти</button>
+    <div id="bankSection" class="bank-section">
+        <h1 id="welcomeMessage"></h1>
+        <div class="balance-info">
+            <p>Баланс:</p>
+            <p>
+                Сомони (TJS): <span id="balanceTJS">0</span><br>
+                Доллар (USD): <span id="balanceUSD">0</span><br>
+                Рубли (RUB): <span id="balanceRUB">0</span>
+            </p>
+        </div>
+        <div class="input-group">
+            <select id="currencySelect">
+                <option value="TJS">Сомони (TJS)</option>
+                <option value="USD">Доллар (USD)</option>
+                <option value="RUB">Рубли (RUB)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <input type="text" id="recipientId" placeholder="Email получателя">
+        </div>
+        <div class="input-group">
+            <input type="number" id="transferAmount" placeholder="Сумма перевода">
+        </div>
+        <button class="btn btn-primary" onclick="transfer()">Перевести</button>
+        <button class="btn btn-secondary" onclick="logout()">Выйти</button>
+        <div class="transfer-history">
+            <h3>История переводов</h3>
+            <div id="historyList" class="history-list"></div>
+        </div>
     </div>
-
-    <p style="text-align:center; cursor:pointer;" onclick="toggleForms()">Уже есть аккаунт? Войти</p>
-</div>
-
-<div class="container hidden" id="bankContainer">
-    <h2>Добро пожаловать, <span id="userName"></span></h2>
-    <p>Email: <span id="userEmail"></span></p>
-    <p>Баланс: <span class="balance" id="userBalance"></span></p>
-
-    <h3>Перевод</h3>
-    <input type="email" id="recipientEmail" placeholder="Email получателя">
-    <input type="number" id="amount" placeholder="Сумма перевода">
-    <button onclick="transfer()">Перевести</button>
-
-    <h3>История переводов</h3>
-    <table id="historyTable">
-        <tr><th>От кого</th><th>Кому</th><th>Сумма</th></tr>
-    </table>
-
-    <button onclick="logout()">Выйти</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <script>
-// Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyAu-3nDoDijgkmFozFuGNhSsODArolpwA4",
-    authDomain: "muzaffar-bank-427fa.firebaseapp.com",
-    projectId: "muzaffar-bank-427fa",
-    storageBucket: "muzaffar-bank-427fa.firebasestorage.app",
-    messagingSenderId: "1076361280717",
-    appId: "1:1076361280717:web:226ca42c35b740fd07fd84",
-    measurementId: "G-KBJGJD2GVQ"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyAu-3nDoDijgkmFozFuGNhSsODArolpwA4",
+        authDomain: "muzaffar-bank-427fa.firebaseapp.com",
+        projectId: "muzaffar-bank-427fa",
+        storageBucket: "muzaffar-bank-427fa.firebasestorage.app",
+        messagingSenderId: "1076361280717",
+        appId: "1:1076361280717:web:226ca42c35b740fd07fd84"
+    };
 
-const app = firebase.initializeApp(firebaseConfig);
-const db = app.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-let currentUser = null;
+    const authSection = document.getElementById('authSection');
+    const bankSection = document.getElementById('bankSection');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
 
-// Переключение форм
-function toggleForms() {
-    document.getElementById('registerForm').classList.toggle('hidden');
-    document.getElementById('loginForm').classList.toggle('hidden');
-}
+    loginTab.addEventListener('click', () => {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+    });
 
-// Регистрация
-async function register() {
-    let name = document.getElementById('regName').value;
-    let phone = document.getElementById('regPhone').value;
-    let email = document.getElementById('regEmail').value;
-    let password = document.getElementById('regPass').value;
+    registerTab.addEventListener('click', () => {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+    });
 
-    if (!name || !phone || !email || !password) { alert('Заполните все поля'); return; }
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            authSection.style.display = 'none';
+            bankSection.style.display = 'block';
+            loadUserData(user);
+        } else {
+            authSection.style.display = 'block';
+            bankSection.style.display = 'none';
+        }
+    });
 
-    const userRef = db.collection('users').doc(email);
-    const doc = await userRef.get();
-    if (doc.exists) { alert('Этот Email уже зарегистрирован'); return; }
-
-    let balance = 0;
-
-    await userRef.set({ name, phone, email, password, balance, isAdmin: false });
-    alert('Регистрация успешна!');
-    loginUser(email, password);
-}
-
-// Вход
-async function login() {
-    let email = document.getElementById('loginEmail').value;
-    let password = document.getElementById('loginPass').value;
-    loginUser(email, password);
-}
-
-// Логин пользователя
-async function loginUser(email, password) {
-    const userRef = db.collection('users').doc(email);
-    const doc = await userRef.get();
-    if (!doc.exists) { alert('Email не найден'); return; }
-
-    const userData = doc.data();
-    if (userData.password !== password) { alert('Неверный пароль'); return; }
-
-    currentUser = { ...userData, id: doc.id };
-    
-    // Проверка на админа через базу данных
-    if (userData.isAdmin) {
-        currentUser.balance = "Infinity";
+    async function register() {
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const phone = document.getElementById('userPhone').value;
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            await db.collection('users').doc(userCredential.user.uid).set({
+                balances: {
+                    TJS: 0,
+                    USD: 0,
+                    RUB: 0
+                },
+                email: email,
+                phone: phone
+            });
+            await db.collection('transactions').doc(userCredential.user.uid).set({
+                history: []
+            });
+            alert("Регистрация успешна! Вы вошли в свой аккаунт.");
+        } catch (error) {
+            alert("Ошибка регистрации: " + error.message);
+        }
     }
 
-    document.getElementById('authContainer').classList.add('hidden');
-    document.getElementById('bankContainer').classList.remove('hidden');
-    document.getElementById('userName').innerText = currentUser.name;
-    document.getElementById('userEmail').innerText = currentUser.email;
-    updateBalance();
-    renderHistory();
-}
-
-// Обновление баланса
-function updateBalance() {
-    document.getElementById('userBalance').innerText = (currentUser.balance === "Infinity") ? '∞' : currentUser.balance;
-}
-
-// Перевод
-async function transfer() {
-    let recipientEmail = document.getElementById('recipientEmail').value;
-    let amount = Number(document.getElementById('amount').value);
-    if (amount <= 0) { alert('Сумма должна быть больше 0'); return; }
-    if (currentUser.email === recipientEmail) { alert('Нельзя переводить себе'); return; }
-
-    const senderRef = db.collection('users').doc(currentUser.id);
-    const recipientRef = db.collection('users').doc(recipientEmail);
-
-    const recipientDoc = await recipientRef.get();
-    if (!recipientDoc.exists) { alert('Email получателя не найден'); return; }
-
-    const senderBalance = (currentUser.balance === "Infinity") ? Infinity : currentUser.balance;
-    if (senderBalance < amount) { alert('Недостаточно средств'); return; }
-
-    const recipientData = recipientDoc.data();
-    const recipientNewBalance = (recipientData.balance === "Infinity") ? Infinity : recipientData.balance + amount;
-    const senderNewBalance = (senderBalance === Infinity) ? "Infinity" : senderBalance - amount;
-
-    await recipientRef.update({ balance: recipientNewBalance });
-    if (senderBalance !== Infinity) {
-        await senderRef.update({ balance: senderNewBalance });
-        currentUser.balance = senderNewBalance;
+    async function login() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            alert("Вход выполнен успешно!");
+        } catch (error) {
+            alert("Ошибка входа: " + error.message);
+        }
     }
 
-    await db.collection('transactions').add({
-        sender_email: currentUser.email,
-        receiver_email: recipientEmail,
-        amount: amount
-    });
+    async function logout() {
+        await auth.signOut();
+    }
 
-    updateBalance();
-    alert('Перевод выполнен!');
-    renderHistory();
-}
+    async function loadUserData(user) {
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            document.getElementById('welcomeMessage').innerText = `Добро пожаловать, ${userData.email}`;
+            
+            // Проверяем, является ли пользователь админом
+            if (userData.isAdmin) {
+                document.getElementById('balanceTJS').innerText = '∞';
+                document.getElementById('balanceUSD').innerText = '∞';
+                document.getElementById('balanceRUB').innerText = '∞';
+            } else {
+                // Если не админ, отображаем реальные балансы
+                document.getElementById('balanceTJS').innerText = userData.balances.TJS || 0;
+                document.getElementById('balanceUSD').innerText = userData.balances.USD || 0;
+                document.getElementById('balanceRUB').innerText = userData.balances.RUB || 0;
+            }
+        }
 
-// История переводов
-async function renderHistory() {
-    const historyTable = document.getElementById('historyTable');
-    historyTable.innerHTML = '<tr><th>От кого</th><th>Кому</th><th>Сумма</th></tr>';
-    
-    const senderSnapshot = await db.collection('transactions').where("sender_email", "==", currentUser.email).get();
-    const receiverSnapshot = await db.collection('transactions').where("receiver_email", "==", currentUser.email).get();
+        const transactionDoc = await db.collection('transactions').doc(user.uid).get();
+        const historyList = document.getElementById('historyList');
+        historyList.innerHTML = '';
+        if (transactionDoc.exists) {
+            const transactions = transactionDoc.data().history || [];
+            transactions.forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'transfer-item';
+                item.innerText = `Перевод на ${t.recipient} ${t.amount} ${t.currency} (${new Date(t.timestamp).toLocaleString()})`;
+                historyList.appendChild(item);
+            });
+        }
+    }
 
-    const transactions = new Map();
-    senderSnapshot.forEach(doc => {
-        transactions.set(doc.id, doc.data());
-    });
-    receiverSnapshot.forEach(doc => {
-        transactions.set(doc.id, doc.data());
-    });
-    
-    transactions.forEach(h => {
-        let row = historyTable.insertRow();
-        row.insertCell(0).innerText = h.sender_email;
-        row.insertCell(1).innerText = h.receiver_email;
-        row.insertCell(2).innerText = h.amount;
-    });
-}
+    async function transfer() {
+        const recipientEmail = document.getElementById('recipientId').value;
+        const amount = Number(document.getElementById('transferAmount').value);
+        const currency = document.getElementById('currencySelect').value;
+        const user = auth.currentUser;
 
-// Выход
-function logout() {
-    currentUser = null;
-    document.getElementById('bankContainer').classList.add('hidden');
-    document.getElementById('authContainer').classList.remove('hidden');
-}
+        if (!user || amount <= 0 || !recipientEmail) {
+            alert("Пожалуйста, заполните все поля корректно.");
+            return;
+        }
+
+        const userDocRef = db.collection('users').doc(user.uid);
+        const recipientDocRef = db.collection('users').where('email', '==', recipientEmail);
+
+        try {
+            await db.runTransaction(async (transaction) => {
+                const userDoc = await transaction.get(userDocRef);
+                const recipientSnapshot = await transaction.get(recipientDocRef);
+                
+                if (!userDoc.exists) {
+                    throw new Error("Недостаточно средств.");
+                }
+
+                const userData = userDoc.data();
+                const currentBalance = userData.balances[currency];
+
+                if (!userData.isAdmin && currentBalance < amount) {
+                    throw new Error("Недостаточно средств.");
+                }
+
+                if (recipientSnapshot.empty) {
+                    throw new Error("Получатель не найден.");
+                }
+
+                const recipientDoc = recipientSnapshot.docs[0];
+                const newBalance = userData.isAdmin ? currentBalance : currentBalance - amount;
+                const recipientData = recipientDoc.data();
+
+                // Обновляем баланс в выбранной валюте
+                const newRecipientBalances = { ...recipientData.balances };
+                newRecipientBalances[currency] = (newRecipientBalances[currency] || 0) + amount;
+                
+                transaction.update(userDocRef, { [`balances.${currency}`]: newBalance });
+                transaction.update(recipientDoc.ref, { balances: newRecipientBalances });
+                
+                const userTransactionRef = db.collection('transactions').doc(user.uid);
+                const recipientTransactionRef = db.collection('transactions').doc(recipientDoc.id);
+                
+                const userTransactionDoc = await transaction.get(userTransactionRef);
+                const recipientTransactionDoc = await transaction.get(recipientTransactionRef);
+
+                const userHistory = userTransactionDoc.data().history || [];
+                const recipientHistory = recipientTransactionDoc.data().history || [];
+                
+                userHistory.push({ recipient: recipientEmail, amount: amount, currency: currency, type: 'sent', timestamp: Date.now() });
+                recipientHistory.push({ recipient: userDoc.data().email, amount: amount, currency: currency, type: 'received', timestamp: Date.now() });
+                
+                transaction.update(userTransactionRef, { history: userHistory });
+                transaction.update(recipientTransactionRef, { history: recipientHistory });
+            });
+
+            alert("Перевод выполнен успешно!");
+            loadUserData(user);
+        } catch (error) {
+            alert("Ошибка перевода: " + error.message);
+        }
+    }
 </script>
 </body>
 </html>
+
